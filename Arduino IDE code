@@ -1,0 +1,68 @@
+const int ledPin = 9;
+
+const char* morseCode[] = {
+  ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---",   // A-J
+  "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-",    // K-T
+  "..-", "...-", ".--", "-..-", "-.--", "--..",                         // U-Z
+  "-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", // 0-7
+  "---..", "----."                                                     // 8-9
+};
+
+void blinkDot() {
+  digitalWrite(ledPin, HIGH);
+  delay(200); // Dot duration
+  digitalWrite(ledPin, LOW);
+  delay(200); // Space between dots and dashes
+}
+
+void blinkDash() {
+  digitalWrite(ledPin, HIGH);
+  delay(600); 
+  digitalWrite(ledPin, LOW);
+  delay(200); 
+}
+
+void sendMorseCode(char c) {
+  if (c >= 'A' && c <= 'Z') {
+    const char* code = morseCode[c - 'A'];
+    while (*code) {
+      if (*code == '.') {
+        blinkDot();
+      } else if (*code == '-') {
+        blinkDash();
+      }
+      code++;
+    }
+  } else if (c >= '0' && c <= '9') {
+    const char* code = morseCode[c - '0' + 26];
+    while (*code) {
+      if (*code == '.') {
+        blinkDot();
+      } else if (*code == '-') {
+        blinkDash();
+      }
+      code++;
+    }
+  }
+  delay(600); 
+}
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    String message = Serial.readStringUntil('\n'); 
+    message.trim(); 
+    for (int i = 0; i < message.length(); i++) {
+      if (message[i] == ' ') {
+        delay(1400);
+      } else {
+        sendMorseCode(toupper(message[i]));
+      }
+    }
+    Serial.println("Message encoded in Morse code: " + message); 
+  }
+}
