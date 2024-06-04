@@ -1,0 +1,92 @@
+import processing.serial.*;
+
+Serial myPort;
+String messageToSend = "";
+TextBox textBox;
+
+void setup() {
+  size(600, 400);
+  
+  myPort = new Serial(this, "/dev/cu.usbmodem2101", 9600);
+  
+  
+  textBox = new TextBox(40, 140, 520, 60);
+}
+
+void draw() {
+  background(255);
+  fill(0);
+  text("Type your message below:", 40, 100);
+  textBox.display();
+}
+
+void mousePressed() {
+  textBox.select(mouseX, mouseY);
+}
+
+void keyPressed() {
+  textBox.type(key);
+}
+
+void keyReleased() {
+  if (key == '\n') {
+    sendMessage();
+  }
+}
+
+void sendMessage() {
+  messageToSend = textBox.getText();
+  sendToArduino(messageToSend);
+}
+
+void sendToArduino(String message) {
+  myPort.write(message + '\n'); 
+}
+
+class TextBox {
+  float x, y, w, h;
+  String text = "";
+  boolean selected = false;
+
+  TextBox(float x, float y, float w, float h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
+
+  void display() {
+    fill(255);
+    if (selected) {
+      stroke(0, 0, 300);
+    } else {
+      noStroke();
+    }
+    rect(x, y, w, h);
+    fill(0);
+    textAlign(LEFT, CENTER);
+    text(text, x + 5, y + h / 2);
+  }
+
+  void select(float px, float py) {
+    if (px > x && px < x + w && py > y && py < y + h) {
+      selected = true;
+    } else {
+      selected = false;
+    }
+  }
+
+  void type(char key) {
+    if (selected) {
+      if (key == BACKSPACE && text.length() > 0) {
+        text = text.substring(0, text.length()-1);
+      } else if (text.length() < 20 && (key >= ' ' || key == ENTER)) {
+        text += key;
+      }
+    }
+  }
+
+  String getText() {
+    return text;
+  }
+}
